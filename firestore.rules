@@ -1,167 +1,205 @@
+/**
+ * @fileoverview Firestore Security Rules for the P2P TrustMarket platform.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for user profiles and listings, and a collaborative access model for trades and disputes.
+ * All write operations are guarded by authentication checks and ownership/membership validation.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profiles, accessible only by the user themselves.
+ * - /users/{userId}/listings/{listingId}: Stores listings created by a specific user, accessible only by the user.
+ * - /trades/{tradeId}: Stores trade data, accessible to the buyer and seller involved.
+ * - /escrowContracts/{escrowContractId}: Stores escrow contract details. Access is not explicitly restricted in this prototype.
+ * - /disputes/{disputeId}: Stores dispute data, accessible to the filer, buyer, and seller involved in the trade.
+ *
+ * Key Security Decisions:
+ * - User listing is disallowed.
+ * - Escrow contracts have open access for now. This should be reviewed and restricted in later iterations.
+ * - Data validation is minimal in this prototype phase, focusing on authorization-critical fields.
+ *
+ * Denormalization for Authorization:
+ * - Listings include `sellerId` for owner-based access control.
+ * - Trades include `buyerId` and `sellerId` for participant-based access control.
+ * - Disputes include `filerId` and inherit `buyerId` and `sellerId` from the associated trade for access control.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile data.
+     * @description Allows a user to read and write their own profile data.
      * @path /users/{userId}
-     * @allow (create) User with ID 'user123' can create their own profile.
-     *          request.auth.uid == 'user123' && request.resource.data.id == 'user123'
-     * @allow (get) User with ID 'user123' can read their own profile.
-     *          request.auth.uid == 'user123'
-     * @allow (update) User with ID 'user123' can update their own profile.
-     *          request.auth.uid == 'user123'
-     * @allow (delete) User with ID 'user123' can delete their own profile.
-     *          request.auth.uid == 'user123'
-     * @deny  (create) User with ID 'user123' cannot create a profile with ID 'user456'.
-     *          request.auth.uid == 'user123' && request.resource.data.id == 'user456'
-     * @deny  (get) User with ID 'user123' cannot read profile data for user 'user456'.
-     *          request.auth.uid == 'user456'
-     * @deny  (update) User with ID 'user123' cannot update profile data for user 'user456'.
-     *          request.auth.uid == 'user456'
-     * @deny  (delete) User with ID 'user123' cannot delete profile data for user 'user456'.
-     *          request.auth.uid == 'user456'
-     * @principle Enforces document ownership for user profiles, ensuring only the authenticated user can access their own data.
+     * @allow (create) User with id 'user123' can create their profile.
+     *   request.auth.uid == 'user123' && request.resource.data.id == 'user123'
+     * @allow (get) User with id 'user123' can read their profile.
+     *   request.auth.uid == 'user123'
+     * @allow (update) User with id 'user123' can update their profile.
+     *   request.auth.uid == 'user123'
+     * @deny (create) User with id 'user123' cannot create a profile with id 'user456'.
+     *   request.auth.uid == 'user123' && request.resource.data.id == 'user456'
+     * @deny (get) User with id 'user456' cannot read the profile of user 'user123'.
+     *   request.auth.uid == 'user456'
+     * @deny (update) User with id 'user456' cannot update the profile of user 'user123'.
+     *   request.auth.uid == 'user456'
+     * @principle Enforces document ownership for writes and reads.
      */
     match /users/{userId} {
-      allow get: if isSignedIn() && isOwner(userId);
+      //  Functions
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return isSignedIn() && request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+          return isOwner(userId) && exists(resource);
+      }
+
+      // Permissions
+      allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isSignedIn() && isSelfCreation(userId);
-      allow update: if isSignedIn() && isOwner(userId);
-      allow delete: if isSignedIn() && isOwner(userId);
+
+      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to listings created by a specific user.
+     * @description Allows a user to create, read, update and delete their own listings.
      * @path /users/{userId}/listings/{listingId}
-     * @allow (create) User with ID 'user123' can create a listing under their profile.
-     *          request.auth.uid == 'user123' && request.resource.data.sellerId == 'user123'
-     * @allow (get) User with ID 'user123' can read a listing under their profile.
-     *          request.auth.uid == 'user123'
-     * @allow (update) User with ID 'user123' can update a listing under their profile.
-     *          request.auth.uid == 'user123'
-     * @allow (delete) User with ID 'user123' can delete a listing under their profile.
-     *          request.auth.uid == 'user123'
-     * @deny  (create) User with ID 'user123' cannot create a listing under user 'user456' profile.
-     *          request.auth.uid == 'user123' && request.resource.data.sellerId == 'user456'
-     * @deny  (get) User with ID 'user123' cannot read a listing under user 'user456' profile.
-     *          request.auth.uid == 'user456'
-     * @deny  (update) User with ID 'user123' cannot update a listing under user 'user456' profile.
-     *          request.auth.uid == 'user456'
-     * @deny  (delete) User with ID 'user123' cannot delete a listing under user 'user456' profile.
-     *          request.auth.uid == 'user456'
-     * @principle Enforces ownership for listings, ensuring only the listing owner can access and modify their listings.
+     * @allow (create) User with id 'user123' can create a listing under their profile.
+     *   request.auth.uid == 'user123' && request.resource.data.sellerId == 'user123'
+     * @allow (get) User with id 'user123' can read their own listing.
+     *   request.auth.uid == 'user123'
+     * @allow (update) User with id 'user123' can update their own listing.
+     *   request.auth.uid == 'user123'
+     * @deny (create) User with id 'user123' cannot create a listing for user 'user456'.
+     *   request.auth.uid == 'user123' && request.resource.data.sellerId == 'user456'
+     * @deny (get) User with id 'user456' cannot read a listing belonging to user 'user123'.
+     *   request.auth.uid == 'user456'
+     * @deny (update) User with id 'user456' cannot update a listing belonging to user 'user123'.
+     *   request.auth.uid == 'user456'
+     * @principle Enforces document ownership for writes and reads within a user's subcollection.
      */
     match /users/{userId}/listings/{listingId} {
-      allow get: if isSignedIn() && isListingOwner(userId);
-      allow list: if isSignedIn() && isListingOwner(userId);
-      allow create: if isSignedIn() && isListingOwner(userId) && request.resource.data.sellerId == userId;
-      allow update: if isSignedIn() && isListingOwner(userId) && resource.data.sellerId == userId;
-      allow delete: if isSignedIn() && isListingOwner(userId) && resource.data.sellerId == userId;
+      //  Functions
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return isSignedIn() && request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+          return isOwner(userId) && exists(resource);
+      }
+
+      // Permissions
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+
+      allow create: if isSignedIn() && request.auth.uid == userId && request.resource.data.sellerId == userId;
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to trade data.
+     * @description Allows the buyer and seller involved in a trade to read trade data and restricts write access.
      * @path /trades/{tradeId}
-     * @allow (create) Any authenticated user can create a trade.
-     *          request.auth != null
-     * @allow (get) Buyer or seller can read trade data.
-     *          request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId
-     * @allow (update) Buyer or seller can update trade data.
-     *          request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId
-     * @allow (delete) No one can delete trade data.
-     *          false
-     * @deny (create) Unauthenticated user cannot create a trade.
-     *          request.auth == null
-     * @deny (get) User not involved in the trade cannot read trade data.
-     *          request.auth.uid != resource.data.buyerId && request.auth.uid != resource.data.sellerId
-     * @deny (update) User not involved in the trade cannot update trade data.
-     *          request.auth.uid != resource.data.buyerId && request.auth.uid != resource.data.sellerId
-     * @principle Enforces access control based on trade participants (buyer and seller).
+     * @allow (get) User with id 'user123' can read a trade where they are the buyer or seller.
+     *   request.auth.uid == 'user123'
+     * @deny (create) User with id 'user123' cannot create a trade without being the buyer or seller.
+     *   request.auth.uid == 'user123'
+     * @deny (update) User with id 'user456' cannot update a trade where they are not the buyer or seller.
+     *   request.auth.uid == 'user456'
+     * @deny (delete) User with id 'user456' cannot delete a trade where they are not the buyer or seller.
+     *   request.auth.uid == 'user456'
+     * @principle Enforces shared access based on buyer and seller roles.
      */
     match /trades/{tradeId} {
-      allow get: if isSignedIn() && (request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId);
+      //  Functions
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isParticipant(buyerId, sellerId) {
+        return isSignedIn() && (request.auth.uid == buyerId || request.auth.uid == sellerId);
+      }
+
+      function isExistingParticipant(buyerId, sellerId) {
+          return isParticipant(buyerId, sellerId) && exists(resource);
+      }
+
+      // Permissions
+      allow get: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid);
       allow list: if false;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && (request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId);
-      allow delete: if false;
+
+      allow create: if isSignedIn() && (request.resource.data.buyerId == request.auth.uid || request.resource.data.sellerId == request.auth.uid);
+      allow update: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid);
+      allow delete: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid);
     }
 
     /**
-     * @description Controls access to escrow contract data.
+     * @description Allows anyone to read escrow contract data. Write permissions are disabled in this prototype.
      * @path /escrowContracts/{escrowContractId}
-     * @allow (get) Anyone can read escrow contract data.
-     *          true
-     * @deny (create) No one can create escrow contract data.
-     *          false
-     * @deny (update) No one can update escrow contract data.
-     *          false
-     * @deny (delete) No one can delete escrow contract data.
-     *          false
-     * @principle Allows public read access for escrow contract details, but restricts write access.
+     * @allow (get) Any user can read escrow contract data.
+     *   true
+     * @deny (create) No user can create escrow contract data.
+     *   false
+     * @deny (update) No user can update escrow contract data.
+     *   false
+     * @deny (delete) No user can delete escrow contract data.
+     *   false
+     * @principle Public read access with no write access (for now).
      */
     match /escrowContracts/{escrowContractId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow get, list: if true;
+      allow create, update, delete: if false;
     }
 
     /**
-     * @description Controls access to dispute data.
+     * @description Allows the filer, buyer, and seller involved in a trade to read dispute data and restricts write access.
      * @path /disputes/{disputeId}
-     * @allow (create) Any authenticated user can create a dispute.
-     *          request.auth != null
-     * @allow (get) Filer, buyer, or seller can read dispute data.
-     *          request.auth.uid == resource.data.filerId || request.auth.uid == get(/trades/$(resource.data.tradeId)).data.buyerId || request.auth.uid == get(/trades/$(resource.data.tradeId)).data.sellerId
-     * @allow (update) Filer or arbitrator can update dispute data.
-     *          request.auth.uid == resource.data.filerId || request.auth.uid == resource.data.arbitratorId
-     * @allow (delete) No one can delete dispute data.
-     *          false
-     * @deny (create) Unauthenticated user cannot create a dispute.
-     *          request.auth == null
-     * @deny (get) User not involved in the dispute or trade cannot read dispute data.
-     *          request.auth.uid != resource.data.filerId && request.auth.uid != get(/trades/$(resource.data.tradeId)).data.buyerId && request.auth.uid != get(/trades/$(resource.data.tradeId)).data.sellerId
-     * @deny (update) User not the filer or arbitrator cannot update dispute data.
-     *          request.auth.uid != resource.data.filerId && request.auth.uid != resource.data.arbitratorId
-     * @principle Enforces access control based on dispute participants (filer, buyer, seller) and arbitrator.
+     * @allow (get) User with id 'user123' can read a dispute where they are the filer, buyer, or seller.
+     *   request.auth.uid == 'user123'
+     * @deny (create) User with id 'user123' cannot create a dispute without being the filer, buyer, or seller.
+     *   request.auth.uid == 'user123'
+     * @deny (update) User with id 'user456' cannot update a dispute where they are not the filer, buyer, or seller.
+     *   request.auth.uid == 'user456'
+     * @deny (delete) User with id 'user456' cannot delete a dispute where they are not the filer, buyer, or seller.
+     *   request.auth.uid == 'user456'
+     * @principle Enforces shared access based on filer, buyer, and seller roles.
      */
     match /disputes/{disputeId} {
-      allow get: if isSignedIn() && (request.auth.uid == resource.data.filerId || (resource.data.tradeId != null && get(/databases/$(database)/documents/trades/$(resource.data.tradeId)).data.buyerId == request.auth.uid) || (resource.data.tradeId != null && get(/databases/$(database)/documents/trades/$(resource.data.tradeId)).data.sellerId == request.auth.uid));
+      //  Functions
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function getTrade(tradeId) {
+        return get(/databases/$(database)/documents/trades/$(tradeId));
+      }
+
+      function isParticipant(dispute, trade) {
+        return isSignedIn() && (request.auth.uid == dispute.filerId || request.auth.uid == trade.data.buyerId || request.auth.uid == trade.data.sellerId);
+      }
+
+      function isExistingParticipant(dispute, trade) {
+          return isParticipant(dispute, trade) && exists(resource);
+      }
+
+      // Permissions
+      allow get: if isSignedIn() && let trade = getTrade(resource.data.tradeId);
+                  then trade.data.buyerId == request.auth.uid || trade.data.sellerId == request.auth.uid || resource.data.filerId == request.auth.uid;
       allow list: if false;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && (request.auth.uid == resource.data.filerId || request.auth.uid == resource.data.arbitratorId);
+
+      allow create: if isSignedIn() && let trade = getTrade(request.resource.data.tradeId);
+                  then trade.data.buyerId == request.auth.uid || trade.data.sellerId == request.auth.uid || request.resource.data.filerId == request.auth.uid;
+      allow update: if false; // TODO: Add condition to allow only arbitrator to update
       allow delete: if false;
-    }
-
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isListingOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-    }
-
-    function isSelfCreation(userId) {
-        return request.auth.uid == userId && request.resource.data.id == userId;
-    }
-
-    function isUserIdNotChanged(userId) {
-        return resource.data.id == getUserIdFromPath();
-    }
-
-    function getUserIdFromPath() {
-      return get(/databases/$(database)/documents/users/$(userId)).data.id;
     }
   }
 }
