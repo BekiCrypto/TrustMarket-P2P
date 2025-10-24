@@ -215,7 +215,8 @@
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "anonymous",
+      "google.com"
     ]
   },
   "firestore": {
@@ -308,3 +309,4 @@
     "reasoning": "The Firestore structure is designed to support a KYC-enabled P2P marketplace with smart contract escrow. It prioritizes authorization independence, clarity, and security through denormalization and structural segregation. Path-based ownership is used for user-owned data, and membership maps are used for collaborative access. This design ensures that security rules are simple, robust, and easily debuggable.\n\nAuthorization Independence (Denormalization): The `listings` collection includes the `sellerId` field, which enables direct access control based on the listing owner without needing to retrieve the user document. The `trades` collection also contains both `buyerId` and `sellerId` enabling rules to be written without complex `get()` calls. Similarly, the `disputes` collection contains the `filerId` and, implicitly through the trade, the `buyerId` and `sellerId` for authorization.\n\nQAPs (Query Authorization Policies): The structure supports secure `list` operations by segregating data based on ownership (e.g., `/users/{userId}/listings`) and using dedicated collections with consistent security requirements.\n\nThe structure also supports the integrity of ownership and timestamps. All entities that should be user-owned are created under the /users/{userId} path and are owned by that user. The use of the state field enables explicit state modelling, as each trade is in one and only one state. The radical consistency is further enforced via semantic naming conventions."
   }
 }
+    
