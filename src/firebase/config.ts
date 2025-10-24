@@ -1,8 +1,9 @@
 export const firebaseConfig = {
-  "projectId": "studio-6306896341-19b03",
-  "appId": "1:47037800085:web:7fe830434e99acb803059c",
-  "apiKey": "AIzaSyCRZ_5ADWiV-j9tQVrI1wtrD4dlwYJ4BSg",
-  "authDomain": "studio-6306896341-19b03.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "47037800085"
+  apiKey: "AIzaSyDgRiv7oRhxPVqQiqkitM4DEp7CvmWSlwk",
+  authDomain: "p2p-trustmarket.firebaseapp.com",
+  projectId: "p2p-trustmarket",
+  storageBucket: "p2p-trustmarket.appspot.com",
+  messagingSenderId: "238537553739",
+  appId: "1:238537553739:web:128310f6d8e9a3a7b51ace",
+  measurementId: "G-G68N5RQ9BY"
 };
