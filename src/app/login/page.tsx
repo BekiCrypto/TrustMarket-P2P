@@ -6,7 +6,7 @@ import { useAuth, useUser } from '@/firebase';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
   GoogleAuthProvider,
 } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
@@ -92,12 +92,9 @@ export default function LoginPage() {
     setGoogleLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      toast({
-        title: 'Signed In',
-        description: 'You have been successfully signed in with Google.',
-      });
-      router.push('/disputes/1');
+      await signInWithRedirect(auth, provider);
+      // The user will be redirected to Google's sign-in page.
+      // The rest of the logic will be handled on page reload when the user is redirected back.
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       toast({
@@ -105,7 +102,6 @@ export default function LoginPage() {
         title: 'Google Sign-In Failed',
         description: error.message || 'An unknown error occurred.',
       });
-    } finally {
       setGoogleLoading(false);
     }
   };
