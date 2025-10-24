@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "receipt-1",
+      "description": "Receipt for the transaction",
+      "imageUrl": "https://images.unsplash.com/photo-1692368149715-d8beda212526?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxyZWNlaXB0JTIwZG9jdW1lbnR8ZW58MHx8fHwxNzYxMzA2NDI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "receipt document"
+    },
+    {
+      "id": "receipt-2",
+      "description": "Screenshot of payment confirmation",
+      "imageUrl": "https://images.unsplash.com/photo-1620204792730-e5b52d101930?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwYXltZW50JTIwY29uZmlybWF0aW9ufGVufDB8fHx8MTc2MTMwNjQyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "payment confirmation"
+    },
+    {
+      "id": "receipt-3",
+      "description": "Image of the faulty item",
+      "imageUrl": "https://images.unsplash.com/photo-1661625079424-dc3870671f24?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwcm9kdWN0JTIwcGhvdG98ZW58MHx8fHwxNzYxMjg1NDM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "product photo"
+    },
+    {
+      "id": "avatar-1",
+      "description": "User avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjEyMjc5NjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar-2",
+      "description": "User avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjEyMjc5NjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar-3",
+      "description": "User avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjEyMjc5NjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    }
+  ]
 }
