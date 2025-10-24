@@ -1,0 +1,310 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user within the P2P TrustMarket platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "publicHandle": {
+          "type": "string",
+          "description": "Publicly visible username or handle for the user."
+        },
+        "kycTier": {
+          "type": "number",
+          "description": "The KYC tier of the user, indicating the level of verification completed. Represented as a numerical value (e.g., 1, 2, 3)."
+        },
+        "reputationScore": {
+          "type": "number",
+          "description": "The reputation score of the user, influencing trust and platform access."
+        },
+        "flags": {
+          "type": "string",
+          "description": "Flags associated with the user, potentially indicating suspicious activity or compliance issues."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The user's phone number."
+        }
+      },
+      "required": [
+        "id",
+        "publicHandle",
+        "kycTier",
+        "reputationScore"
+      ]
+    },
+    "Listing": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Listing",
+      "type": "object",
+      "description": "Represents an offer to trade on the P2P TrustMarket platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Listing entity."
+        },
+        "sellerId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Listing) The ID of the user who created the listing."
+        },
+        "asset": {
+          "type": "string",
+          "description": "The asset being offered in the listing (e.g., BTC, USD)."
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of the asset in the listing."
+        },
+        "paymentMethods": {
+          "type": "array",
+          "description": "The payment methods accepted for the listing.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limits": {
+          "type": "string",
+          "description": "The limits for the trade amount in the listing."
+        },
+        "terms": {
+          "type": "string",
+          "description": "The terms and conditions of the listing."
+        }
+      },
+      "required": [
+        "id",
+        "sellerId",
+        "asset",
+        "price",
+        "paymentMethods",
+        "limits",
+        "terms"
+      ]
+    },
+    "Trade": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Trade",
+      "type": "object",
+      "description": "Represents a trade between two users on the P2P TrustMarket platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Trade entity."
+        },
+        "listingId": {
+          "type": "string",
+          "description": "Reference to Listing. (Relationship: Listing 1:N Trade) The ID of the listing associated with the trade."
+        },
+        "buyerId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Trade (as buyer)) The ID of the user who is the buyer in the trade."
+        },
+        "sellerId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Trade (as seller)) The ID of the user who is the seller in the trade."
+        },
+        "state": {
+          "type": "string",
+          "description": "The current state of the trade (e.g., Created, Funded, InProgress, Released, Refunded, Disputed, Resolved)."
+        },
+        "escrowId": {
+          "type": "string",
+          "description": "Reference to EscrowContract. (Relationship: EscrowContract 1:1 Trade) The ID of the escrow contract associated with the trade."
+        },
+        "timestamps": {
+          "type": "string",
+          "description": "Timestamps related to the trade, such as creation time and last updated time.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "listingId",
+        "buyerId",
+        "sellerId",
+        "state",
+        "escrowId",
+        "timestamps"
+      ]
+    },
+    "EscrowContract": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "EscrowContract",
+      "type": "object",
+      "description": "Represents a smart contract used for escrow in a trade.",
+      "properties": {
+        "address": {
+          "type": "string",
+          "description": "The address of the smart contract."
+        },
+        "chain": {
+          "type": "string",
+          "description": "The blockchain the smart contract is deployed on."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the smart contract (e.g., active, inactive)."
+        },
+        "events": {
+          "type": "string",
+          "description": "Events emitted by the smart contract.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "address",
+        "chain",
+        "status",
+        "events"
+      ]
+    },
+    "Dispute": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Dispute",
+      "type": "object",
+      "description": "Represents a dispute between two users in a trade.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Dispute entity."
+        },
+        "tradeId": {
+          "type": "string",
+          "description": "Reference to Trade. (Relationship: Trade 1:N Dispute) The ID of the trade associated with the dispute."
+        },
+        "filerId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Dispute (as filer)) The ID of the user who filed the dispute."
+        },
+        "evidence": {
+          "type": "array",
+          "description": "Evidence provided for the dispute.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "arbitratorId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Dispute (as arbitrator)) The ID of the user who is the arbitrator for the dispute."
+        },
+        "decision": {
+          "type": "string",
+          "description": "The decision made by the arbitrator for the dispute."
+        }
+      },
+      "required": [
+        "id",
+        "tradeId",
+        "filerId",
+        "evidence",
+        "arbitratorId",
+        "decision"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Collection for storing user profiles. Uses path-based ownership for private user data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/listings/{listingId}",
+        "definition": {
+          "entityName": "Listing",
+          "schema": {
+            "$ref": "#/backend/entities/Listing"
+          },
+          "description": "Subcollection for storing listings created by a specific user. Uses path-based ownership. Includes denormalized 'sellerId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who created the listing."
+            },
+            {
+              "name": "listingId",
+              "description": "The unique identifier of the listing."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/trades/{tradeId}",
+        "definition": {
+          "entityName": "Trade",
+          "schema": {
+            "$ref": "#/backend/entities/Trade"
+          },
+          "description": "Collection for storing trades. Includes denormalized 'buyerId' and 'sellerId' for authorization independence.",
+          "params": [
+            {
+              "name": "tradeId",
+              "description": "The unique identifier of the trade."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/escrowContracts/{escrowContractId}",
+        "definition": {
+          "entityName": "EscrowContract",
+          "schema": {
+            "$ref": "#/backend/entities/EscrowContract"
+          },
+          "description": "Collection for storing escrow contract details.",
+          "params": [
+            {
+              "name": "escrowContractId",
+              "description": "The unique identifier of the escrow contract."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/disputes/{disputeId}",
+        "definition": {
+          "entityName": "Dispute",
+          "schema": {
+            "$ref": "#/backend/entities/Dispute"
+          },
+          "description": "Collection for storing disputes. Includes denormalized 'filerId' and, implicitly through the trade, the 'buyerId' and 'sellerId' for authorization independence.",
+          "params": [
+            {
+              "name": "disputeId",
+              "description": "The unique identifier of the dispute."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support a KYC-enabled P2P marketplace with smart contract escrow. It prioritizes authorization independence, clarity, and security through denormalization and structural segregation. Path-based ownership is used for user-owned data, and membership maps are used for collaborative access. This design ensures that security rules are simple, robust, and easily debuggable.\n\nAuthorization Independence (Denormalization): The `listings` collection includes the `sellerId` field, which enables direct access control based on the listing owner without needing to retrieve the user document. The `trades` collection also contains both `buyerId` and `sellerId` enabling rules to be written without complex `get()` calls. Similarly, the `disputes` collection contains the `filerId` and, implicitly through the trade, the `buyerId` and `sellerId` for authorization.\n\nQAPs (Query Authorization Policies): The structure supports secure `list` operations by segregating data based on ownership (e.g., `/users/{userId}/listings`) and using dedicated collections with consistent security requirements.\n\nThe structure also supports the integrity of ownership and timestamps. All entities that should be user-owned are created under the /users/{userId} path and are owned by that user. The use of the state field enables explicit state modelling, as each trade is in one and only one state. The radical consistency is further enforced via semantic naming conventions."
+  }
+}
