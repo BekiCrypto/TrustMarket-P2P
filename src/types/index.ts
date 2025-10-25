@@ -4,6 +4,7 @@ export interface UserProfile {
   avatarId: string;
   reputation: number;
   trades: number;
+  email?: string; // Make email optional as it might not be public
 }
 
 export interface ChatMessage {
@@ -20,4 +21,11 @@ export interface Dispute {
   chatTranscript: ChatMessage[];
   receiptIds: string[];
   dateInitiated: string;
+}
+
+export interface DisputeDocument {
+    buyerId: string;
+    sellerId: string;
+    status: 'Open' | 'Resolved' | 'Pending';
+    dateInitiated: string; // Assuming this is a string, could be Timestamp
 }

@@ -1,15 +1,16 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { doc } from 'firebase/firestore';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { getDisputeById } from '@/lib/data';
+import { useDoc, useFirestore, useMemoFirebase, useUsers } from '@/firebase';
+import { getDisputeById } from '@/lib/data'; // Keep for mock chat/receipts
 import { DisputeLayout } from '@/components/dispute/dispute-layout';
 import { UserInfoCard } from '@/components/dispute/user-info-card';
 import { ChatTranscript } from '@/components/dispute/chat-transcript';
 import { EvidenceGallery } from '@/components/dispute/evidence-gallery';
 import { AiAnalysisCard } from '@/components/dispute/ai-analysis-card';
-import { type Dispute } from '@/types';
+import { type Dispute, type DisputeDocument, UserProfile } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
@@ -94,10 +95,20 @@ export default function DisputePage() {
     [firestore, id]
   );
 
-  const { data: dispute, isLoading, error } = useDoc<Omit<Dispute, 'id' | 'buyer' | 'seller' | 'chatTranscript' | 'receiptIds' | 'dateInitiated'>>(disputeRef);
+  const { data: dispute, isLoading: isDisputeLoading, error: disputeError } = useDoc<DisputeDocument>(disputeRef);
 
-  // Still need mock data for users for now
+  const userIds = useMemo(() => {
+    if (!dispute) return [];
+    return [dispute.buyerId, dispute.sellerId].filter(Boolean);
+  }, [dispute]);
+
+  const { users, isLoading: areUsersLoading, error: usersError } = useUsers(userIds);
+
+  // Still need mock data for chat and receipts
   const staticData = getDisputeById(id);
+
+  const isLoading = isDisputeLoading || (dispute && areUsersLoading);
+  const error = disputeError || usersError;
 
   if (isLoading) {
     return <DisputeDetailSkeleton />;
@@ -108,22 +119,27 @@ export default function DisputePage() {
   }
   
   if (!dispute || !staticData) {
-    // This will be triggered if the document doesn't exist in Firestore
-    // or if the static fallback isn't found.
     notFound();
   }
-  
-  // Combine live data with mock user data
+
+  const buyer = users[dispute.buyerId];
+  const seller = users[dispute.sellerId];
+
+  if (!buyer || !seller) {
+    // If users aren't loaded yet but dispute is, show skeleton.
+    // This state is hit briefly between dispute load and user load.
+    return <DisputeDetailSkeleton />;
+  }
+
   const finalDisputeData: Dispute = {
     ...dispute,
     id,
-    buyer: staticData.buyer,
-    seller: staticData.seller,
+    buyer,
+    seller,
     chatTranscript: staticData.chatTranscript, // Use mock chat for now
     receiptIds: staticData.receiptIds, // Use mock receipts for now
     dateInitiated: staticData.dateInitiated,
   };
-
 
   return (
     <DisputeLayout
