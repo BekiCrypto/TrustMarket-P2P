@@ -1,5 +1,7 @@
 
 
+export type UserKycStatus = 'Verified' | 'Pending' | 'Unverified' | 'Rejected';
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -7,6 +9,7 @@ export interface UserProfile {
   reputation: number;
   trades: number;
   email?: string;
+  kycStatus: UserKycStatus;
 }
 
 export interface ChatMessage {

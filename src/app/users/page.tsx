@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -22,10 +23,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, ListFilter } from 'lucide-react';
+import { MoreHorizontal, ListFilter, CheckCircle, XCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getImageById } from '@/lib/placeholder-images';
 import {
@@ -37,21 +39,11 @@ import {
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { type UserProfile } from '@/types';
+import { type UserProfile, type UserKycStatus } from '@/types';
+import { updateUserKycStatus } from '@/app/actions/user';
+import { useToast } from '@/hooks/use-toast';
 
-// Mock KYC status as it's not in the UserProfile schema yet.
-type UserWithKyc = UserProfile & {
-  kycStatus: 'Verified' | 'Pending' | 'Unverified' | 'Rejected';
-};
-
-const MOCK_KYC_STATUSES: UserWithKyc['kycStatus'][] = [
-  'Verified',
-  'Pending',
-  'Unverified',
-  'Rejected',
-];
-
-const getKycBadge = (status: UserWithKyc['kycStatus']) => {
+const getKycBadge = (status: UserKycStatus) => {
   switch (status) {
     case 'Verified':
       return <Badge className="bg-green-500 text-white">Verified</Badge>;
@@ -108,6 +100,9 @@ const renderLoadingState = () => (
 
 export default function UsersPage() {
   const firestore = useFirestore();
+  const [updatingKyc, setUpdatingKyc] = useState<Record<string, boolean>>({});
+  const { toast } = useToast();
+
   const usersQuery = useMemoFirebase(
     () => (firestore ? query(collection(firestore, 'users'), orderBy('name')) : null),
     [firestore]
@@ -115,14 +110,23 @@ export default function UsersPage() {
 
   const { data: users, isLoading, error } = useCollection<UserProfile>(usersQuery);
 
-  // Add a mock kycStatus to each user for display purposes
-  const usersWithKyc: UserWithKyc[] | null = useMemo(() => {
-    return users?.map((user, index) => ({
-      ...user,
-      // Cycle through mock statuses for variety
-      kycStatus: MOCK_KYC_STATUSES[index % MOCK_KYC_STATUSES.length],
-    })) || [];
-  }, [users]);
+  const handleKycUpdate = async (userId: string, status: UserKycStatus) => {
+    setUpdatingKyc(prev => ({...prev, [userId]: true}));
+    const response = await updateUserKycStatus({ userId, status });
+    setUpdatingKyc(prev => ({...prev, [userId]: false}));
+    if (response.success) {
+      toast({
+        title: 'KYC Status Updated',
+        description: `User's KYC status has been set to ${status}.`,
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Update Failed',
+        description: response.error,
+      });
+    }
+  };
 
 
   return (
@@ -140,7 +144,7 @@ export default function UsersPage() {
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="verified">Verified</TabsTrigger>
               <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="suspended">Suspended</TabsTrigger>
+              <TabsTrigger value="unverified">Unverified</TabsTrigger>
             </TabsList>
             <div className="ml-auto flex items-center gap-2">
               <DropdownMenu>
@@ -181,8 +185,9 @@ export default function UsersPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {usersWithKyc?.map(user => {
+                      {users?.map(user => {
                         const userAvatar = getImageById(user.avatarId);
+                        const isUpdating = updatingKyc[user.id];
                         return (
                           <TableRow key={user.id}>
                             <TableCell>
@@ -219,6 +224,7 @@ export default function UsersPage() {
                                     aria-haspopup="true"
                                     size="icon"
                                     variant="ghost"
+                                    disabled={isUpdating}
                                   >
                                     <MoreHorizontal className="h-4 w-4" />
                                     <span className="sr-only">Toggle menu</span>
@@ -228,7 +234,26 @@ export default function UsersPage() {
                                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                   <DropdownMenuItem>View Profile</DropdownMenuItem>
                                   <DropdownMenuItem>View Disputes</DropdownMenuItem>
-                                  <DropdownMenuItem className="text-red-500">
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuLabel>KYC Management</DropdownMenuLabel>
+                                  <DropdownMenuItem 
+                                    disabled={isUpdating || user.kycStatus === 'Verified'}
+                                    onClick={() => handleKycUpdate(user.id, 'Verified')}
+                                    className="text-green-600 focus:bg-green-50 focus:text-green-700"
+                                  >
+                                      <CheckCircle className="mr-2 h-4 w-4" />
+                                      Approve KYC
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    disabled={isUpdating || user.kycStatus === 'Rejected'}
+                                    onClick={() => handleKycUpdate(user.id, 'Rejected')}
+                                    className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                    >
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Reject KYC
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-red-500 focus:bg-red-50 focus:text-red-700">
                                     Suspend User
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>

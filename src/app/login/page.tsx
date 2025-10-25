@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -5,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signInWithRedirect,
   GoogleAuthProvider,
   getRedirectResult,
@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
 import { Loader2 } from 'lucide-react';
@@ -54,7 +53,6 @@ export default function LoginPage() {
   const [resetEmail, setResetEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(true);
-  const [isSignUp, setIsSignUp] = useState(false);
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -97,12 +95,8 @@ export default function LoginPage() {
   }, [auth, toast]);
 
   useEffect(() => {
-    if (!isSignUp) {
-      setResetEmail(email);
-    } else {
-      setResetEmail('');
-    }
-  }, [email, isSignUp]);
+    setResetEmail(email);
+  }, [email]);
 
   if (isUserLoading || googleLoading || user) {
     return (
@@ -124,19 +118,11 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        toast({
-          title: 'Account Created',
-          description: 'You have been successfully signed up.',
-        });
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        toast({
-          title: 'Signed In',
-          description: 'You have been successfully signed in.',
-        });
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: 'Signed In',
+        description: 'You have been successfully signed in.',
+      });
       // Redirect is handled by the main useEffect
     } catch (error: any) {
       console.error('Authentication error:', error);
@@ -197,17 +183,11 @@ export default function LoginPage() {
         <div className="absolute top-8 left-8">
             <Logo />
         </div>
-      <Tabs defaultValue="signin" className="w-full max-w-sm">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="signin" onClick={() => setIsSignUp(false)}>Sign In</TabsTrigger>
-          <TabsTrigger value="signup" onClick={() => setIsSignUp(true)}>Sign Up</TabsTrigger>
-        </TabsList>
-        <TabsContent value="signin">
-          <Card>
+        <Card className="w-full max-w-sm">
             <CardHeader>
-              <CardTitle>Sign In</CardTitle>
+              <CardTitle>Admin Sign In</CardTitle>
               <CardDescription>
-                Enter your credentials to access your account.
+                Enter your credentials to access the dashboard.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -273,48 +253,8 @@ export default function LoginPage() {
                 Sign In
               </Button>
             </CardFooter>
-          </Card>
-        </TabsContent>
-        <TabsContent value="signup">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sign Up</CardTitle>
-              <CardDescription>
-                Create an account to get started.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
-                <Input
-                  id="signup-email"
-                  type="email"
-                  placeholder="m@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading || googleLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
-                <Input
-                  id="signup-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading || googleLoading}
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={handleAuth} className="w-full" disabled={loading || googleLoading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign Up
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        </Card>
+
       <div className="mt-4 w-full max-w-sm">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">

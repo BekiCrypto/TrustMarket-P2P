@@ -11,9 +11,14 @@
         "email": { "type": "string", "description": "The user's email address." },
         "avatarId": { "type": "string", "description": "Identifier for the user's avatar image." },
         "reputation": { "type": "number", "description": "User's reputation score (0-100)." },
-        "trades": { "type": "number", "description": "Total number of completed trades." }
+        "trades": { "type": "number", "description": "Total number of completed trades." },
+        "kycStatus": {
+          "type": "string",
+          "enum": ["Verified", "Pending", "Unverified", "Rejected"],
+          "description": "The user's Know Your Customer (KYC) status."
+        }
       },
-      "required": ["id", "name", "reputation", "trades"]
+      "required": ["id", "name", "reputation", "trades", "kycStatus"]
     },
     "Dispute": {
       "title": "Dispute",
