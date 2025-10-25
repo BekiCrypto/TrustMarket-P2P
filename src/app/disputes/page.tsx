@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, ListFilter } from 'lucide-react';
-import { getUsers, type User } from '@/lib/users-data';
+import { getAllDisputes, type DisputeOverview } from '@/lib/disputes-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getImageById } from '@/lib/placeholder-images';
 import {
@@ -32,20 +32,19 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import Link from 'next/link';
 
-export default function UsersPage() {
-  const users = getUsers();
+export default function AllDisputesPage() {
+  const disputes = getAllDisputes();
 
-  const getKycBadge = (status: User['kycStatus']) => {
+  const getStatusBadge = (status: DisputeOverview['status']) => {
     switch (status) {
-      case 'Verified':
-        return <Badge className="bg-green-500 text-white">Verified</Badge>;
+      case 'Open':
+        return <Badge variant="destructive">Open</Badge>;
+      case 'Resolved':
+        return <Badge className="bg-green-500 text-white">Resolved</Badge>;
       case 'Pending':
         return <Badge className="bg-yellow-500 text-black">Pending</Badge>;
-      case 'Unverified':
-        return <Badge variant="secondary">Unverified</Badge>;
-      case 'Rejected':
-        return <Badge variant="destructive">Rejected</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -54,9 +53,9 @@ export default function UsersPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Users</CardTitle>
+        <CardTitle>Disputes</CardTitle>
         <CardDescription>
-          View, manage, and monitor all user accounts on the platform.
+          Manage and review all ongoing and past disputes on the platform.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -64,9 +63,9 @@ export default function UsersPage() {
           <div className="flex items-center">
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="verified">Verified</TabsTrigger>
+              <TabsTrigger value="open">Open</TabsTrigger>
               <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="suspended">Suspended</TabsTrigger>
+              <TabsTrigger value="resolved">Resolved</TabsTrigger>
             </TabsList>
             <div className="ml-auto flex items-center gap-2">
               <DropdownMenu>
@@ -90,49 +89,66 @@ export default function UsersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Reputation</TableHead>
+                    <TableHead>Case ID</TableHead>
+                    <TableHead>Participants</TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Trades
+                      Date Initiated
                     </TableHead>
-                    <TableHead>KYC Status</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>
                       <span className="sr-only">Actions</span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.map(user => {
-                    const userAvatar = getImageById(user.avatarId);
+                  {disputes.map(dispute => {
+                    const buyerAvatar = getImageById(dispute.buyer.avatarId);
+                    const sellerAvatar = getImageById(dispute.seller.avatarId);
                     return (
-                      <TableRow key={user.id}>
+                      <TableRow key={dispute.id}>
                         <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9">
-                              {userAvatar && (
-                                <AvatarImage
-                                  src={userAvatar.imageUrl}
-                                  alt={user.name}
-                                  data-ai-hint={userAvatar.imageHint}
-                                />
-                              )}
-                              <AvatarFallback>
-                                {user.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="grid gap-0.5">
-                              <div className="font-medium">{user.name}</div>
-                              <div className="hidden text-sm text-muted-foreground md:inline">
-                                {user.email}
-                              </div>
+                          <Link
+                            href={`/disputes/${dispute.id}`}
+                            className="font-medium text-primary hover:underline"
+                          >
+                            #{dispute.id}
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="flex -space-x-2 overflow-hidden">
+                              <Avatar className="inline-block h-6 w-6 rounded-full border-2 border-background">
+                                {buyerAvatar && (
+                                  <AvatarImage
+                                    src={buyerAvatar.imageUrl}
+                                    alt={dispute.buyer.name}
+                                  />
+                                )}
+                                <AvatarFallback>
+                                  {dispute.buyer.name.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <Avatar className="inline-block h-6 w-6 rounded-full border-2 border-background">
+                                {sellerAvatar && (
+                                  <AvatarImage
+                                    src={sellerAvatar.imageUrl}
+                                    alt={dispute.seller.name}
+                                  />
+                                )}
+                                <AvatarFallback>
+                                  {dispute.seller.name.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
                             </div>
+                            <span>
+                              {dispute.buyer.name} vs {dispute.seller.name}
+                            </span>
                           </div>
                         </TableCell>
-                        <TableCell>{user.reputation}%</TableCell>
                         <TableCell className="hidden md:table-cell">
-                          {user.trades}
+                          {dispute.dateInitiated}
                         </TableCell>
-                        <TableCell>{getKycBadge(user.kycStatus)}</TableCell>
+                        <TableCell>{getStatusBadge(dispute.status)}</TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -147,10 +163,13 @@ export default function UsersPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>View Profile</DropdownMenuItem>
-                              <DropdownMenuItem>View Disputes</DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-500">
-                                Suspend User
+                              <DropdownMenuItem asChild>
+                                <Link href={`/disputes/${dispute.id}`}>
+                                  Review Case
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                Assign to Arbitrator
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

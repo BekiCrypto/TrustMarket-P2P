@@ -25,13 +25,14 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-    { id: 'disputes', label: 'Disputes', icon: Gavel, href: '/disputes/1' },
+    { id: 'disputes', label: 'Disputes', icon: Gavel, href: '/disputes' },
     { id: 'listings', label: 'Listings', icon: List, href: '/listings' },
     { id: 'users', label: 'Users', icon: Users, href: '/users' },
   ];
   
   const settingsItem = { id: 'settings', label: 'Settings', icon: Settings, href: '/settings' };
 
+  const isDisputePage = pathname.startsWith('/disputes');
 
   return (
     <SidebarProvider>
@@ -47,7 +48,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <SidebarMenuButton
                     tooltip={item.label}
                     href={item.href}
-                    isActive={pathname === item.href || (item.id === 'disputes' && pathname.startsWith('/disputes'))}
+                    isActive={pathname === item.href || (item.id === 'disputes' && isDisputePage)}
                     asChild
                   >
                     <div>
@@ -79,7 +80,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </Sidebar>
         <SidebarInset>
           <Header />
-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
             {children}
           </main>
         </SidebarInset>
