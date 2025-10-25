@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { getAiSuggestion } from '@/app/actions/dispute';
-import type { Dispute, DisputeDocument } from '@/types';
+import type { Dispute } from '@/types';
 import type { AnalyzeDisputeEvidenceOutput } from '@/ai/flows/ai-analyze-dispute-evidence';
 import { Progress } from '../ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
@@ -23,10 +23,9 @@ import { cn } from '@/lib/utils';
 
 type AiAnalysisCardProps = {
   dispute: Dispute;
-  disputeDoc: DisputeDocument;
 };
 
-export function AiAnalysisCard({ dispute, disputeDoc }: AiAnalysisCardProps) {
+export function AiAnalysisCard({ dispute }: AiAnalysisCardProps) {
   const [isAnalysisLoading, setAnalysisLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalyzeDisputeEvidenceOutput | null>(null);
   const [isFinalizeDialogOpen, setFinalizeDialogOpen] = useState(false);
@@ -40,7 +39,7 @@ export function AiAnalysisCard({ dispute, disputeDoc }: AiAnalysisCardProps) {
       chatTranscript: dispute.chatTranscript.map(m => `${m.senderId === dispute.buyer.id ? 'Buyer' : 'Seller'}: ${m.message}`).join('\n'),
       buyerReputation: dispute.buyer.reputation,
       sellerReputation: dispute.seller.reputation,
-      receipts: dispute.receiptIds,
+      receipts: dispute.evidence.map(e => e.url),
     };
 
     const response = await getAiSuggestion(input);
@@ -61,7 +60,7 @@ export function AiAnalysisCard({ dispute, disputeDoc }: AiAnalysisCardProps) {
     }
   };
 
-  const isResolved = disputeDoc.status === 'Resolved';
+  const isResolved = dispute.status === 'Resolved';
 
   return (
     <>
@@ -91,16 +90,16 @@ export function AiAnalysisCard({ dispute, disputeDoc }: AiAnalysisCardProps) {
                     <div>
                     <div className="mb-1 flex justify-between text-sm font-medium">
                         <span>Buyer ({dispute.buyer.name})</span>
-                        <span className="font-bold">{isResolved ? disputeDoc.resolution?.buyerPercentage : analysisResult?.suggestedEscrowSplit.buyerPercentage}%</span>
+                        <span className="font-bold">{isResolved ? dispute.resolution?.buyerPercentage : analysisResult?.suggestedEscrowSplit.buyerPercentage}%</span>
                     </div>
-                    <Progress value={isResolved ? disputeDoc.resolution?.buyerPercentage : analysisResult?.suggestedEscrowSplit.buyerPercentage} className="h-3" />
+                    <Progress value={isResolved ? dispute.resolution?.buyerPercentage : analysisResult?.suggestedEscrowSplit.buyerPercentage} className="h-3" />
                     </div>
                     <div>
                     <div className="mb-1 flex justify-between text-sm font-medium">
                         <span>Seller ({dispute.seller.name})</span>
-                        <span className="font-bold">{isResolved ? disputeDoc.resolution?.sellerPercentage : analysisResult?.suggestedEscrowSplit.sellerPercentage}%</span>
+                        <span className="font-bold">{isResolved ? dispute.resolution?.sellerPercentage : analysisResult?.suggestedEscrowSplit.sellerPercentage}%</span>
                     </div>
-                    <Progress value={isResolved ? disputeDoc.resolution?.sellerPercentage : analysisResult?.suggestedEscrowSplit.sellerPercentage} className="h-3" />
+                    <Progress value={isResolved ? dispute.resolution?.sellerPercentage : analysisResult?.suggestedEscrowSplit.sellerPercentage} className="h-3" />
                     </div>
                 </div>
                 </div>
@@ -110,7 +109,7 @@ export function AiAnalysisCard({ dispute, disputeDoc }: AiAnalysisCardProps) {
                     <Info className="h-4 w-4" />
                     <AlertTitle>{isResolved ? 'Arbitrator\'s Final Notes' : 'AI\'s Rationale'}</AlertTitle>
                     <AlertDescription className="text-sm leading-relaxed">
-                        {isResolved ? disputeDoc.resolution?.finalReasoning : analysisResult?.suggestedEscrowSplit.reasoning}
+                        {isResolved ? dispute.resolution?.finalReasoning : analysisResult?.suggestedEscrowSplit.reasoning}
                     </AlertDescription>
                 </Alert>
             </div>

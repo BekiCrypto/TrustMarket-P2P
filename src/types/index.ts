@@ -1,5 +1,4 @@
 
-
 export type UserKycStatus = 'Verified' | 'Pending' | 'Unverified' | 'Rejected';
 
 export interface UserProfile {
@@ -13,34 +12,41 @@ export interface UserProfile {
 }
 
 export interface ChatMessage {
+  id: string;
   senderId: string;
   message: string;
-  timestamp: string;
+  timestamp: string; // ISO 8601 format
 }
 
-export interface Dispute {
-  id: string;
-  status: 'Open' | 'Resolved' | 'Pending';
-  buyer: UserProfile;
-  seller: UserProfile;
-  chatTranscript: ChatMessage[];
-  receiptIds: string[];
-  dateInitiated: string;
+export interface Evidence {
+    id: string;
+    disputeId: string;
+    url: string;
+    description: string;
+}
+
+export interface Resolution {
+    finalReasoning: string;
+    buyerPercentage: number;
+    sellerPercentage: number;
+    resolvedBy: string; // UID of the arbitrator
+    resolvedAt: string; // ISO timestamp
 }
 
 export interface DisputeDocument {
     buyerId: string;
     sellerId: string;
     status: 'Open' | 'Resolved' | 'Pending';
-    dateInitiated: string; // Assuming this is a string, could be Timestamp
-    // Resolution details - to be added when a case is resolved
-    resolution?: {
-      finalReasoning: string;
-      buyerPercentage: number;
-      sellerPercentage: number;
-      resolvedBy: string; // UID of the arbitrator
-      resolvedAt: string; // ISO timestamp
-    };
+    dateInitiated: string; // ISO 8601 format
+    resolution?: Resolution;
+}
+
+export interface Dispute extends DisputeDocument {
+    id: string;
+    buyer: UserProfile;
+    seller: UserProfile;
+    chatTranscript: ChatMessage[];
+    evidence: Evidence[];
 }
 
 export interface ListingDocument {

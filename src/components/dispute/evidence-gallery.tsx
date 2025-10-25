@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import {
   Card,
@@ -5,15 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getImageById } from '@/lib/placeholder-images';
 import { Paperclip } from 'lucide-react';
+import type { Evidence } from '@/types';
 
 type EvidenceGalleryProps = {
-  receiptIds: string[];
+  evidence: Evidence[];
 };
 
-export function EvidenceGallery({ receiptIds }: EvidenceGalleryProps) {
-  const images = receiptIds.map(getImageById).filter(Boolean);
+export function EvidenceGallery({ evidence }: EvidenceGalleryProps) {
 
   return (
     <Card>
@@ -23,26 +23,30 @@ export function EvidenceGallery({ receiptIds }: EvidenceGalleryProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {images.length > 0 ? (
+        {evidence && evidence.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            {images.map((image) =>
-              image ? (
-                <div key={image.id} className="group relative overflow-hidden rounded-lg">
+            {evidence.map((item) => (
+              <div key={item.id} className="group relative overflow-hidden rounded-lg">
+                <a href={item.url} target="_blank" rel="noopener noreferrer">
                   <Image
-                    src={image.imageUrl}
-                    alt={image.description}
+                    src={item.url}
+                    alt={item.description}
                     width={300}
                     height={300}
                     className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    data-ai-hint={image.imageHint}
                   />
-                  <div className="absolute inset-0 bg-black/20" />
-                </div>
-              ) : null
-            )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-white text-xs text-center p-2">{item.description}</p>
+                  </div>
+                </a>
+              </div>
+            ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No evidence has been uploaded.</p>
+          <div className="flex flex-col items-center justify-center gap-2 text-center text-muted-foreground p-8 border border-dashed rounded-lg">
+            <Paperclip className="h-8 w-8" />
+            <p>No evidence has been uploaded for this dispute.</p>
+          </div>
         )}
       </CardContent>
     </Card>

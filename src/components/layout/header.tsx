@@ -1,4 +1,7 @@
-import { Gavel, CircleUser } from 'lucide-react';
+
+'use client';
+
+import { CircleUser } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,11 +14,10 @@ import {
 import { SidebarTrigger } from '../ui/sidebar';
 import { Breadcrumb } from '../breadcrumb';
 import Image from 'next/image';
-import { getImageById } from '@/lib/placeholder-images';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
-import { disputes } from '@/lib/data';
+import Link from 'next/link';
 
 export function Header() {
   const { user } = useUser();
@@ -30,31 +32,36 @@ export function Header() {
 
   const getBreadcrumbItems = () => {
     const pathParts = pathname.split('/').filter(part => part);
-    const items = [{ label: 'Dashboard', href: '/dashboard' }];
+    const items = [{ label: 'Home', href: '/dashboard' }];
 
-    if (pathParts[0] === 'disputes') {
-      items[0]!.label = 'Disputes';
-      items[0]!.href = '/disputes';
-
-      if (pathParts[1]) {
-        const dispute = disputes.find(d => d.id === pathParts[1]);
-        if (dispute) {
-          items.push({ label: `Case #${dispute.id}` });
-        }
-      }
-    } else if (pathParts.length > 0) {
-      const pageName = pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(1);
-      items[0]!.label = pageName;
-      items[0]!.href = `/${pathParts[0]}`;
+    if (pathParts.length === 0 || pathParts[0] === 'dashboard') {
+        return [{ label: 'Dashboard', href: '/dashboard' }];
     }
+
+    let currentPath = '';
+    pathParts.forEach((part, index) => {
+        currentPath += `/${part}`;
+        const isLast = index === pathParts.length - 1;
+        
+        let label = part.charAt(0).toUpperCase() + part.slice(1);
+        if (part.match(/^\d+$/)) {
+            label = `Case #${part}`;
+        }
+
+        if (index === 0) {
+            items[0] = { label, href: currentPath };
+        } else {
+            items.push({ label, href: isLast ? undefined : currentPath });
+        }
+    });
 
     return items;
   };
 
 
-  const userAvatarUrl = user?.photoURL || getImageById('avatar-3')?.imageUrl;
+  const userAvatarUrl = user?.photoURL;
   const userDisplayName = user?.displayName || 'Arbitrator';
-  const userInitial = userDisplayName.charAt(0);
+  const userEmail = user?.email || 'No email';
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
@@ -72,7 +79,6 @@ export function Header() {
                 width={36}
                 height={36}
                 className="rounded-full object-cover"
-                data-ai-hint="person portrait"
               />
             ) : (
               <CircleUser className="h-5 w-5" />
@@ -81,9 +87,14 @@ export function Header() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{userDisplayName}</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            <div className="font-medium">{userDisplayName}</div>
+            <div className="text-xs text-muted-foreground">{userEmail}</div>
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/settings">Settings</Link>
+          </DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>

@@ -3,15 +3,14 @@
 
 import { useMemo } from 'react';
 import { useParams, notFound } from 'next/navigation';
-import { doc } from 'firebase/firestore';
-import { useDoc, useFirestore, useMemoFirebase, useUsers } from '@/firebase';
-import { getDisputeById } from '@/lib/data'; // Keep for mock chat/receipts
+import { doc, collection } from 'firebase/firestore';
+import { useDoc, useFirestore, useMemoFirebase, useUsers, useCollection } from '@/firebase';
 import { DisputeLayout } from '@/components/dispute/dispute-layout';
 import { UserInfoCard } from '@/components/dispute/user-info-card';
 import { ChatTranscript } from '@/components/dispute/chat-transcript';
 import { EvidenceGallery } from '@/components/dispute/evidence-gallery';
 import { AiAnalysisCard } from '@/components/dispute/ai-analysis-card';
-import { type Dispute, type DisputeDocument, UserProfile } from '@/types';
+import { type Dispute, type DisputeDocument, type ChatMessage, type Evidence, type UserProfile } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
@@ -95,8 +94,19 @@ export default function DisputePage() {
     () => (firestore && id ? doc(firestore, 'disputes', id) : null),
     [firestore, id]
   );
+  const chatRef = useMemoFirebase(
+    () => (firestore && id ? collection(firestore, `disputes/${id}/chat`) : null),
+    [firestore, id]
+  );
+  const evidenceRef = useMemoFirebase(
+    () => (firestore && id ? collection(firestore, `disputes/${id}/evidence`) : null),
+    [firestore, id]
+  );
 
   const { data: disputeDoc, isLoading: isDisputeLoading, error: disputeError } = useDoc<DisputeDocument>(disputeRef);
+  const { data: chatMessages, isLoading: isChatLoading, error: chatError } = useCollection<ChatMessage>(chatRef);
+  const { data: evidence, isLoading: isEvidenceLoading, error: evidenceError } = useCollection<Evidence>(evidenceRef);
+
 
   const userIds = useMemo(() => {
     if (!disputeDoc) return [];
@@ -105,11 +115,8 @@ export default function DisputePage() {
 
   const { users, isLoading: areUsersLoading, error: usersError } = useUsers(userIds);
 
-  // Still need mock data for chat and receipts
-  const staticData = getDisputeById(id);
-
-  const isLoading = isDisputeLoading || (disputeDoc && areUsersLoading);
-  const error = disputeError || usersError;
+  const isLoading = isDisputeLoading || isChatLoading || isEvidenceLoading || (disputeDoc && areUsersLoading);
+  const error = disputeError || usersError || chatError || evidenceError;
 
   if (isLoading) {
     return <DisputeDetailSkeleton />;
@@ -119,7 +126,7 @@ export default function DisputePage() {
     return <div className="text-destructive-foreground bg-destructive/80 p-4 rounded-md">Error loading dispute: {error.message}</div>;
   }
   
-  if (!disputeDoc || !staticData) {
+  if (!disputeDoc) {
     notFound();
   }
 
@@ -127,19 +134,16 @@ export default function DisputePage() {
   const seller = users[disputeDoc.sellerId];
 
   if (!buyer || !seller) {
-    // If users aren't loaded yet but dispute is, show skeleton.
-    // This state is hit briefly between dispute load and user load.
     return <DisputeDetailSkeleton />;
   }
-
+  
   const finalDisputeData: Dispute = {
     ...disputeDoc,
     id,
     buyer,
     seller,
-    chatTranscript: staticData.chatTranscript, // Use mock chat for now
-    receiptIds: staticData.receiptIds, // Use mock receipts for now
-    dateInitiated: staticData.dateInitiated,
+    chatTranscript: chatMessages || [],
+    evidence: evidence || [],
   };
 
   return (
@@ -155,12 +159,11 @@ export default function DisputePage() {
           <ChatTranscript
             messages={finalDisputeData.chatTranscript}
             buyerId={finalDisputeData.buyer.id}
-            sellerId={finalDisputeData.seller.id}
           />
-          <EvidenceGallery receiptIds={finalDisputeData.receiptIds} />
+          <EvidenceGallery evidence={finalDisputeData.evidence} />
         </>
       }
-      arbitratorTools={<AiAnalysisCard dispute={finalDisputeData} disputeDoc={disputeDoc} />}
+      arbitratorTools={<AiAnalysisCard dispute={finalDisputeData} />}
     />
   );
 }
