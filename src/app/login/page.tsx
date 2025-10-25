@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
 import {
@@ -53,12 +53,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [resetEmail, setResetEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(true); // Start true to handle initial redirect check
+  const [googleLoading, setGoogleLoading] = useState(true);
   const [isSignUp, setIsSignUp] = useState(false);
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
+
+  const handleRedirect = useCallback(() => {
+    if (user) {
+      router.replace('/disputes/1');
+    }
+  }, [user, router]);
+
+  useEffect(() => {
+    if (!isUserLoading) {
+      handleRedirect();
+    }
+  }, [user, isUserLoading, handleRedirect]);
 
   useEffect(() => {
     // Handle redirect result from Google sign-in
@@ -69,7 +81,7 @@ export default function LoginPage() {
             title: 'Signed In',
             description: 'You have been successfully signed in with Google.',
           });
-          // The AuthGuard will handle the redirect, so we don't need to push here.
+          // Redirect is handled by the main useEffect
         }
       })
       .catch((error) => {
@@ -83,12 +95,6 @@ export default function LoginPage() {
         setGoogleLoading(false);
       });
   }, [auth, toast]);
-
-  useEffect(() => {
-    if (!isUserLoading && user) {
-        router.push('/disputes/1');
-    }
-  }, [user, isUserLoading, router]);
 
   useEffect(() => {
     if (!isSignUp) {
@@ -131,7 +137,7 @@ export default function LoginPage() {
           description: 'You have been successfully signed in.',
         });
       }
-      // AuthGuard will handle redirection
+      // Redirect is handled by the main useEffect
     } catch (error: any) {
       console.error('Authentication error:', error);
       toast({
@@ -146,10 +152,8 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithRedirect(auth, provider);
-    } catch (error: any) {
+    const provider = new GoogleAuthProvider();
+    await signInWithRedirect(auth, provider).catch((error: any) => {
       console.error('Google sign-in error:', error);
       toast({
         variant: 'destructive',
@@ -157,7 +161,7 @@ export default function LoginPage() {
         description: error.message || 'An unknown error occurred.',
       });
       setGoogleLoading(false);
-    }
+    });
   };
 
   const handlePasswordReset = async () => {
