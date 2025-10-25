@@ -24,11 +24,14 @@ export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '#' },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { id: 'disputes', label: 'Disputes', icon: Gavel, href: '/disputes/1' },
-    { id: 'listings', label: 'Listings', icon: List, href: '#' },
-    { id: 'users', label: 'Users', icon: Users, href: '#' },
+    { id: 'listings', label: 'Listings', icon: List, href: '/listings' },
+    { id: 'users', label: 'Users', icon: Users, href: '/users' },
   ];
+  
+  const settingsItem = { id: 'settings', label: 'Settings', icon: Settings, href: '/settings' };
+
 
   return (
     <SidebarProvider>
@@ -44,7 +47,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <SidebarMenuButton
                     tooltip={item.label}
                     href={item.href}
-                    isActive={pathname.startsWith('/disputes') && item.id === 'disputes'}
+                    isActive={pathname === item.href || (item.id === 'disputes' && pathname.startsWith('/disputes'))}
                   >
                     <item.icon />
                     <span>{item.label}</span>
@@ -56,9 +59,9 @@ export function AppLayout({ children }: AppLayoutProps) {
           <SidebarFooter>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Settings" href="#">
+                <SidebarMenuButton tooltip={settingsItem.label} href={settingsItem.href} isActive={pathname === settingsItem.href}>
                   <Settings />
-                  <span>Settings</span>
+                  <span>{settingsItem.label}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
