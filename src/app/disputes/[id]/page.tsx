@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -95,19 +96,19 @@ export default function DisputePage() {
     [firestore, id]
   );
 
-  const { data: dispute, isLoading: isDisputeLoading, error: disputeError } = useDoc<DisputeDocument>(disputeRef);
+  const { data: disputeDoc, isLoading: isDisputeLoading, error: disputeError } = useDoc<DisputeDocument>(disputeRef);
 
   const userIds = useMemo(() => {
-    if (!dispute) return [];
-    return [dispute.buyerId, dispute.sellerId].filter(Boolean);
-  }, [dispute]);
+    if (!disputeDoc) return [];
+    return [disputeDoc.buyerId, disputeDoc.sellerId].filter(Boolean);
+  }, [disputeDoc]);
 
   const { users, isLoading: areUsersLoading, error: usersError } = useUsers(userIds);
 
   // Still need mock data for chat and receipts
   const staticData = getDisputeById(id);
 
-  const isLoading = isDisputeLoading || (dispute && areUsersLoading);
+  const isLoading = isDisputeLoading || (disputeDoc && areUsersLoading);
   const error = disputeError || usersError;
 
   if (isLoading) {
@@ -118,12 +119,12 @@ export default function DisputePage() {
     return <div className="text-destructive-foreground bg-destructive/80 p-4 rounded-md">Error loading dispute: {error.message}</div>;
   }
   
-  if (!dispute || !staticData) {
+  if (!disputeDoc || !staticData) {
     notFound();
   }
 
-  const buyer = users[dispute.buyerId];
-  const seller = users[dispute.sellerId];
+  const buyer = users[disputeDoc.buyerId];
+  const seller = users[disputeDoc.sellerId];
 
   if (!buyer || !seller) {
     // If users aren't loaded yet but dispute is, show skeleton.
@@ -132,7 +133,7 @@ export default function DisputePage() {
   }
 
   const finalDisputeData: Dispute = {
-    ...dispute,
+    ...disputeDoc,
     id,
     buyer,
     seller,
@@ -159,7 +160,7 @@ export default function DisputePage() {
           <EvidenceGallery receiptIds={finalDisputeData.receiptIds} />
         </>
       }
-      arbitratorTools={<AiAnalysisCard dispute={finalDisputeData} />}
+      arbitratorTools={<AiAnalysisCard dispute={finalDisputeData} disputeDoc={disputeDoc} />}
     />
   );
 }

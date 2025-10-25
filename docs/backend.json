@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -21,7 +22,18 @@
         "id": { "type": "string", "description": "Unique identifier for the dispute." },
         "status": { "type": "string", "enum": ["Open", "Resolved", "Pending"], "description": "The current status of the dispute." },
         "buyerId": { "type": "string", "description": "The ID of the user acting as the buyer." },
-        "sellerId": { "type": "string", "description": "The ID of the user acting as the seller." }
+        "sellerId": { "type": "string", "description": "The ID of the user acting as the seller." },
+        "resolution": {
+          "type": "object",
+          "description": "Details about the resolution of the dispute.",
+          "properties": {
+            "finalReasoning": { "type": "string", "description": "The arbitrator's final reasoning for the decision." },
+            "buyerPercentage": { "type": "number", "description": "The percentage of escrow awarded to the buyer." },
+            "sellerPercentage": { "type": "number", "description": "The percentage of escrow awarded to the seller." },
+            "resolvedBy": { "type": "string", "description": "The UID of the arbitrator who resolved the dispute." },
+            "resolvedAt": { "type": "string", "format": "date-time", "description": "The timestamp when the dispute was resolved." }
+          }
+        }
       },
       "required": ["id", "status", "buyerId", "sellerId"]
     },

@@ -1,3 +1,4 @@
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -28,6 +29,14 @@ export interface DisputeDocument {
     sellerId: string;
     status: 'Open' | 'Resolved' | 'Pending';
     dateInitiated: string; // Assuming this is a string, could be Timestamp
+    // Resolution details - to be added when a case is resolved
+    resolution?: {
+      finalReasoning: string;
+      buyerPercentage: number;
+      sellerPercentage: number;
+      resolvedBy: string; // UID of the arbitrator
+      resolvedAt: string; // ISO timestamp
+    };
 }
 
 export interface ListingDocument {
