@@ -9,6 +9,7 @@ import {
   signInWithRedirect,
   GoogleAuthProvider,
   getRedirectResult,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +27,17 @@ import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
 import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -39,6 +51,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -71,6 +84,14 @@ export default function LoginPage() {
         setGoogleLoading(false);
       });
   }, [auth, router, toast]);
+
+  useEffect(() => {
+    if (!isSignUp) {
+      setResetEmail(email);
+    } else {
+      setResetEmail('');
+    }
+  }, [email, isSignUp]);
 
   if (isUserLoading || googleLoading) {
     return (
@@ -139,6 +160,34 @@ export default function LoginPage() {
     }
   };
 
+  const handlePasswordReset = async () => {
+    if (!resetEmail) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Email',
+        description: 'Please enter your email address to reset your password.',
+      });
+      return;
+    }
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      toast({
+        title: 'Password Reset Email Sent',
+        description: `If an account exists for ${resetEmail}, a password reset link has been sent.`,
+      });
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Password Reset Failed',
+        description: error.message || 'An unknown error occurred.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
         <div className="absolute top-8 left-8">
@@ -170,7 +219,41 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="link" className="h-auto p-0 text-xs">
+                        Forgot Password?
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Reset Password</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Enter your email address and we'll send you a link to reset your password.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <div className="space-y-2 py-2">
+                        <Label htmlFor="reset-email">Email</Label>
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          placeholder="m@example.com"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                        />
+                      </div>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handlePasswordReset} disabled={loading}>
+                          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Send Reset Link
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
                 <Input
                   id="password"
                   type="password"
