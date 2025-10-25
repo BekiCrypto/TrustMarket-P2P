@@ -47,7 +47,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     isActive={pathname.startsWith('/disputes') && item.id === 'disputes'}
                   >
                     <item.icon />
-                    {item.label}
+                    <span>{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -58,7 +58,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <SidebarMenuItem>
                 <SidebarMenuButton tooltip="Settings" href="#">
                   <Settings />
-                  Settings
+                  <span>Settings</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
