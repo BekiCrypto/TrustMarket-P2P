@@ -135,5 +135,3 @@ export function AiAnalysisCard({ dispute }: AiAnalysisCardProps) {
     </Card>
   );
 }
-
-    
