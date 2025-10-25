@@ -4,7 +4,7 @@ export interface UserProfile {
   avatarId: string;
   reputation: number;
   trades: number;
-  email?: string; // Make email optional as it might not be public
+  email?: string;
 }
 
 export interface ChatMessage {
