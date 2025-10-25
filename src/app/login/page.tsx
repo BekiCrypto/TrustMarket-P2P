@@ -53,7 +53,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [resetEmail, setResetEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(true); // Start true to handle initial redirect check
   const [isSignUp, setIsSignUp] = useState(false);
   const auth = useAuth();
   const router = useRouter();
@@ -62,7 +62,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     // Handle redirect result from Google sign-in
-    setGoogleLoading(true);
     getRedirectResult(auth)
       .then((result) => {
         if (result) {
@@ -70,7 +69,7 @@ export default function LoginPage() {
             title: 'Signed In',
             description: 'You have been successfully signed in with Google.',
           });
-          router.push('/disputes/1');
+          // The AuthGuard will handle the redirect, so we don't need to push here.
         }
       })
       .catch((error) => {
@@ -83,7 +82,13 @@ export default function LoginPage() {
       }).finally(() => {
         setGoogleLoading(false);
       });
-  }, [auth, router, toast]);
+  }, [auth, toast]);
+
+  useEffect(() => {
+    if (!isUserLoading && user) {
+        router.push('/disputes/1');
+    }
+  }, [user, isUserLoading, router]);
 
   useEffect(() => {
     if (!isSignUp) {
@@ -93,18 +98,13 @@ export default function LoginPage() {
     }
   }, [email, isSignUp]);
 
-  if (isUserLoading || googleLoading) {
+  if (isUserLoading || googleLoading || user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="ml-4 text-muted-foreground">Signing in...</p>
       </div>
     );
-  }
-
-  if (user) {
-    router.push('/disputes/1');
-    return null;
   }
 
   const handleAuth = async () => {
@@ -131,7 +131,7 @@ export default function LoginPage() {
           description: 'You have been successfully signed in.',
         });
       }
-      router.push('/disputes/1');
+      // AuthGuard will handle redirection
     } catch (error: any) {
       console.error('Authentication error:', error);
       toast({
@@ -339,5 +339,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
