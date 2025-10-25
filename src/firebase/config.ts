@@ -1,9 +1,9 @@
 export const firebaseConfig = {
-  apiKey: "AIzaSyDgRiv7oRhxPVqQiqkitM4DEp7CvmWSlwk",
-  authDomain: "p2p-trustmarket.firebaseapp.com",
-  projectId: "p2p-trustmarket",
-  storageBucket: "p2p-trustmarket.appspot.com",
-  messagingSenderId: "238537553739",
-  appId: "1:238537553739:web:128310f6d8e9a3a7b51ace",
-  measurementId: "G-G68N5RQ9BY"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
