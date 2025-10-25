@@ -1,5 +1,6 @@
-import Link from 'next/link';
+'use client';
 import type { ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { Gavel, LayoutDashboard, List, Settings, Users } from 'lucide-react';
 import {
   SidebarProvider,
@@ -20,6 +21,15 @@ type AppLayoutProps = {
 };
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const pathname = usePathname();
+
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '#' },
+    { id: 'disputes', label: 'Disputes', icon: Gavel, href: '/disputes/1' },
+    { id: 'listings', label: 'Listings', icon: List, href: '#' },
+    { id: 'users', label: 'Users', icon: Users, href: '#' },
+  ];
+
   return (
     <SidebarProvider>
       <div className="min-h-screen w-full">
@@ -29,30 +39,18 @@ export function AppLayout({ children }: AppLayoutProps) {
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Dashboard" href="#">
-                  <LayoutDashboard />
-                  Dashboard
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Disputes" href="#" isActive>
-                  <Gavel />
-                  Disputes
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Listings" href="#">
-                  <List />
-                  Listings
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Users" href="#">
-                  <Users />
-                  Users
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    tooltip={item.label}
+                    href={item.href}
+                    isActive={pathname.startsWith('/disputes') && item.id === 'disputes'}
+                  >
+                    <item.icon />
+                    {item.label}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
@@ -76,3 +74,5 @@ export function AppLayout({ children }: AppLayoutProps) {
     </SidebarProvider>
   );
 }
+
+    

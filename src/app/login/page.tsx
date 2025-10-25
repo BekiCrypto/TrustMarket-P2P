@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
 import {
@@ -8,6 +8,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithRedirect,
   GoogleAuthProvider,
+  getRedirectResult,
 } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -46,10 +47,36 @@ export default function LoginPage() {
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
 
-  if (isUserLoading) {
+  useEffect(() => {
+    // Handle redirect result from Google sign-in
+    setGoogleLoading(true);
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          toast({
+            title: 'Signed In',
+            description: 'You have been successfully signed in with Google.',
+          });
+          router.push('/disputes/1');
+        }
+      })
+      .catch((error) => {
+        console.error('Google sign-in redirect error:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Google Sign-In Failed',
+          description: error.message || 'Could not complete Google sign-in.',
+        });
+      }).finally(() => {
+        setGoogleLoading(false);
+      });
+  }, [auth, router, toast]);
+
+  if (isUserLoading || googleLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-4 text-muted-foreground">Signing in...</p>
       </div>
     );
   }
@@ -60,6 +87,14 @@ export default function LoginPage() {
   }
 
   const handleAuth = async () => {
+    if (!email || !password) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Fields',
+        description: 'Please enter both email and password.',
+      });
+      return;
+    }
     setLoading(true);
     try {
       if (isSignUp) {
@@ -93,8 +128,6 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithRedirect(auth, provider);
-      // The user will be redirected to Google's sign-in page.
-      // The rest of the logic will be handled on page reload when the user is redirected back.
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       toast({
@@ -223,4 +256,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
     

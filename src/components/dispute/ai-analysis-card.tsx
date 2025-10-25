@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { WandSparkles, Loader2 } from 'lucide-react';
+import { WandSparkles, Loader2, Info } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -57,7 +57,7 @@ export function AiAnalysisCard({ dispute }: AiAnalysisCardProps) {
   };
 
   return (
-    <Card className="bg-primary/5">
+    <Card className="bg-primary/5 border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <WandSparkles className="h-5 w-5 text-primary" />
@@ -69,10 +69,10 @@ export function AiAnalysisCard({ dispute }: AiAnalysisCardProps) {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border p-8 text-center">
+          <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border p-8 text-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm font-medium text-muted-foreground">
-              Analyzing evidence...
+              Analyzing evidence... This may take a moment.
             </p>
           </div>
         ) : result ? (
@@ -99,6 +99,8 @@ export function AiAnalysisCard({ dispute }: AiAnalysisCardProps) {
              <div>
                 <h3 className="mb-2 text-base font-semibold">Reasoning</h3>
                 <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>AI's Rationale</AlertTitle>
                     <AlertDescription className="text-sm leading-relaxed">
                         {result.suggestedEscrowSplit.reasoning}
                     </AlertDescription>
@@ -106,9 +108,13 @@ export function AiAnalysisCard({ dispute }: AiAnalysisCardProps) {
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center rounded-lg border border-dashed border-border p-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Click the button below to start the analysis.
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-8 text-center h-64">
+             <WandSparkles className="h-10 w-10 text-muted-foreground/50 mb-4" />
+            <p className="text-sm text-muted-foreground font-medium">
+              Ready to analyze dispute evidence.
+            </p>
+             <p className="text-xs text-muted-foreground mt-1">
+              Click the button below to start the AI analysis.
             </p>
           </div>
         )}
@@ -129,3 +135,5 @@ export function AiAnalysisCard({ dispute }: AiAnalysisCardProps) {
     </Card>
   );
 }
+
+    

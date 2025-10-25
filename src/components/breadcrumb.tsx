@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Fragment } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
 type BreadcrumbItem = {
   label: string;
@@ -14,16 +15,21 @@ type BreadcrumbProps = {
 };
 
 export function Breadcrumb({ items, className }: BreadcrumbProps) {
+  const pathname = usePathname();
+  
   return (
     <nav aria-label="Breadcrumb" className={cn('text-sm font-medium', className)}>
-      <ol className="flex items-center gap-1">
+      <ol className="flex items-center gap-1.5">
         {items.map((item, index) => (
           <Fragment key={item.label}>
             <li>
               {item.href ? (
                 <Link
                   href={item.href}
-                  className="text-muted-foreground transition-colors hover:text-foreground"
+                  className={cn(
+                    "transition-colors hover:text-foreground",
+                    pathname === item.href ? "text-foreground" : "text-muted-foreground"
+                    )}
                 >
                   {item.label}
                 </Link>
@@ -42,3 +48,5 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
     </nav>
   );
 }
+
+    
