@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, notFound } from 'next/navigation';
-import { doc, DocumentData } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { getDisputeById } from '@/lib/data';
 import { DisputeLayout } from '@/components/dispute/dispute-layout';
@@ -94,7 +94,7 @@ export default function DisputePage() {
     [firestore, id]
   );
 
-  const { data: dispute, isLoading, error } = useDoc<Omit<Dispute, 'id'>>(disputeRef);
+  const { data: dispute, isLoading, error } = useDoc<Omit<Dispute, 'id' | 'buyer' | 'seller' | 'chatTranscript' | 'receiptIds' | 'dateInitiated'>>(disputeRef);
 
   // Still need mock data for users for now
   const staticData = getDisputeById(id);
@@ -121,7 +121,8 @@ export default function DisputePage() {
     seller: staticData.seller,
     chatTranscript: staticData.chatTranscript, // Use mock chat for now
     receiptIds: staticData.receiptIds, // Use mock receipts for now
-  }
+    dateInitiated: staticData.dateInitiated,
+  };
 
 
   return (

@@ -19,5 +19,5 @@ export interface Dispute {
   seller: UserProfile;
   chatTranscript: ChatMessage[];
   receiptIds: string[];
-  dateInitiated: string; // Ensure this property exists
+  dateInitiated: string;
 }

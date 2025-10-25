@@ -62,7 +62,7 @@ export default function LoginPage() {
 
   const handleRedirect = useCallback(() => {
     if (user) {
-      router.replace('/disputes/1');
+      router.replace('/dashboard');
     }
   }, [user, router]);
 
