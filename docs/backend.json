@@ -8,6 +8,7 @@
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the user." },
         "name": { "type": "string", "description": "The user's display name." },
+        "email": { "type": "string", "description": "The user's email address." },
         "avatarId": { "type": "string", "description": "Identifier for the user's avatar image." },
         "reputation": { "type": "number", "description": "User's reputation score (0-100)." },
         "trades": { "type": "number", "description": "Total number of completed trades." }
@@ -23,6 +24,7 @@
         "status": { "type": "string", "enum": ["Open", "Resolved", "Pending"], "description": "The current status of the dispute." },
         "buyerId": { "type": "string", "description": "The ID of the user acting as the buyer." },
         "sellerId": { "type": "string", "description": "The ID of the user acting as the seller." },
+        "dateInitiated": { "type": "string", "format": "date-time", "description": "The timestamp when the dispute was initiated." },
         "resolution": {
           "type": "object",
           "description": "Details about the resolution of the dispute.",
@@ -35,7 +37,7 @@
           }
         }
       },
-      "required": ["id", "status", "buyerId", "sellerId"]
+      "required": ["id", "status", "buyerId", "sellerId", "dateInitiated"]
     },
     "ChatMessage": {
         "title": "Chat Message",

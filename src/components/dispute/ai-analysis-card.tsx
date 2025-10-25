@@ -19,6 +19,7 @@ import type { AnalyzeDisputeEvidenceOutput } from '@/ai/flows/ai-analyze-dispute
 import { Progress } from '../ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { FinalizeDecisionDialog } from './finalize-decision-dialog';
+import { cn } from '@/lib/utils';
 
 type AiAnalysisCardProps = {
   dispute: Dispute;
@@ -153,8 +154,4 @@ export function AiAnalysisCard({ dispute, disputeDoc }: AiAnalysisCardProps) {
     )}
     </>
   );
-}
-
-function cn(arg0: string, arg1: string): string | undefined {
-    throw new Error('Function not implemented.');
 }
