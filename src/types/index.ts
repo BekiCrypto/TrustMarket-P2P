@@ -29,3 +29,10 @@ export interface DisputeDocument {
     status: 'Open' | 'Resolved' | 'Pending';
     dateInitiated: string; // Assuming this is a string, could be Timestamp
 }
+
+export interface ListingDocument {
+    title: string;
+    sellerId: string;
+    price: number;
+    status: 'Active' | 'Sold' | 'Suspended';
+}

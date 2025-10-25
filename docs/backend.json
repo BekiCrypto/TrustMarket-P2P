@@ -47,6 +47,19 @@
             "description": { "type": "string", "description": "A brief description of the evidence." }
         },
         "required": ["id", "disputeId", "url"]
+    },
+    "Listing": {
+      "title": "Listing",
+      "description": "Represents a marketplace listing.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the listing." },
+        "title": { "type": "string", "description": "The title of the listing." },
+        "sellerId": { "type": "string", "description": "The ID of the user who is the seller." },
+        "price": { "type": "number", "description": "The price of the item." },
+        "status": { "type": "string", "enum": ["Active", "Sold", "Suspended"], "description": "The current status of the listing." }
+      },
+      "required": ["id", "title", "sellerId", "price", "status"]
     }
   },
   "auth": {
@@ -71,8 +84,10 @@
     "/disputes/{disputeId}/evidence": {
         "schema": { "$ref": "#/entities/Evidence" },
         "description": "Sub-collection for evidence files related to a specific dispute."
+    },
+    "/listings/{listingId}": {
+      "schema": { "$ref": "#/entities/Listing" },
+      "description": "Top-level collection for all marketplace listings."
     }
   }
 }
-
-    
