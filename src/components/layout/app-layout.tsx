@@ -48,9 +48,12 @@ export function AppLayout({ children }: AppLayoutProps) {
                     tooltip={item.label}
                     href={item.href}
                     isActive={pathname === item.href || (item.id === 'disputes' && pathname.startsWith('/disputes'))}
+                    asChild
                   >
-                    <item.icon />
-                    <span>{item.label}</span>
+                    <div>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -59,9 +62,16 @@ export function AppLayout({ children }: AppLayoutProps) {
           <SidebarFooter>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip={settingsItem.label} href={settingsItem.href} isActive={pathname === settingsItem.href}>
-                  <Settings />
-                  <span>{settingsItem.label}</span>
+                <SidebarMenuButton 
+                  tooltip={settingsItem.label} 
+                  href={settingsItem.href} 
+                  isActive={pathname === settingsItem.href}
+                  asChild
+                >
+                  <div>
+                    <Settings />
+                    <span>{settingsItem.label}</span>
+                  </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

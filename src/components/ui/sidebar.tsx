@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
@@ -539,6 +540,7 @@ const SidebarMenuButton = React.forwardRef<
     asChild?: boolean
     isActive?: boolean
     tooltip?: string | React.ComponentProps<typeof TooltipContent>
+    href?: string
   } & VariantProps<typeof sidebarMenuButtonVariants>
 >(
   (
@@ -549,6 +551,7 @@ const SidebarMenuButton = React.forwardRef<
       size = "default",
       tooltip,
       className,
+      href,
       ...props
     },
     ref
@@ -567,8 +570,16 @@ const SidebarMenuButton = React.forwardRef<
       />
     )
 
+    const buttonWithOptionalLink = href ? (
+      <Link href={href} legacyBehavior passHref>
+        {button}
+      </Link>
+    ) : (
+      button
+    )
+
     if (!tooltip) {
-      return button
+      return buttonWithOptionalLink
     }
 
     if (typeof tooltip === "string") {
@@ -579,7 +590,7 @@ const SidebarMenuButton = React.forwardRef<
 
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipTrigger asChild>{buttonWithOptionalLink}</TooltipTrigger>
         <TooltipContent
           side="right"
           align="center"
